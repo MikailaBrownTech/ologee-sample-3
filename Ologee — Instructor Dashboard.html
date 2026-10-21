@@ -1,0 +1,1814 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Ologee — Instructor Dashboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap">
+
+<style>
+/* ── Tokens ──────────────────────────────────────────────── */
+:root {
+  --black:     #0F0F0D;
+  --ink:       #1A1A18;
+  --ink-2:     #28281E;
+  --emerald:   #187A49;
+  --em-mid:    #1F9A5E;
+  --em-light:  #E8F5EE;
+  --gold:      #B8922E;
+  --gold-lt:   #FDF4E0;
+  --red:       #C0392B;
+  --red-lt:    #FDECEB;
+  --blue:      #1A5FA0;
+  --blue-lt:   #EBF2FA;
+
+  --canvas:    #F5F4F0;
+  --surface:   #FFFFFF;
+  --surface-2: #F9F8F5;
+  --line:      #E8E7E2;
+  --fg:        #18181A;
+  --fg-2:      #636360;
+  --fg-3:      #A8A8A4;
+
+  --sidebar-w: 220px;
+  --topbar-h:  52px;
+  --r: 12px;
+  --r-sm: 8px;
+
+  font-family: 'Inter', system-ui, sans-serif;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --canvas:   #111110; --surface: #1A1A18; --surface-2: #222220;
+    --line: #2E2E2C; --fg: #EEECEA; --fg-2: #909088; --fg-3: #5A5A56;
+    --em-light: #0D2418; --gold-lt: #261D08; --red-lt: #2A0E0C; --blue-lt: #0A1A2E;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --canvas: #111110; --surface: #1A1A18; --surface-2: #222220;
+  --line: #2E2E2C; --fg: #EEECEA; --fg-2: #909088; --fg-3: #5A5A56;
+  --em-light: #0D2418; --gold-lt: #261D08; --red-lt: #2A0E0C; --blue-lt: #0A1A2E;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input, textarea, select { font-family: inherit; }
+
+body {
+  background: var(--canvas);
+  color: var(--fg);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════════
+   TOPBAR
+══════════════════════════════════════ */
+.topbar {
+  height: var(--topbar-h);
+  background: var(--black);
+  display: flex; align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  flex-shrink: 0;
+  z-index: 200;
+}
+.tb-logo {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 1.05rem; font-weight: 400; letter-spacing: -0.01em;
+  color: #fff; flex-shrink: 0;
+}
+.tb-logo span { color: var(--emerald); }
+.tb-role {
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 8px; border-radius: 99px;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.45);
+  flex-shrink: 0;
+}
+.tb-spacer { flex: 1; }
+.tb-notif {
+  position: relative; width: 32px; height: 32px;
+  border-radius: 8px; border: 1px solid rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; cursor: pointer; color: rgba(255,255,255,0.5);
+  transition: background 0.12s;
+}
+.tb-notif:hover { background: rgba(255,255,255,0.07); color: #fff; }
+.notif-dot {
+  position: absolute; top: 6px; right: 7px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--red); border: 1.5px solid var(--black);
+}
+.tb-av {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--emerald), var(--ink));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 700; color: #fff;
+  cursor: pointer; flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════
+   APP SHELL
+══════════════════════════════════════ */
+.shell { flex: 1; display: flex; min-height: 0; overflow: hidden; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  display: flex; flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+.nav-section { padding: 16px 0 8px; }
+.nav-label {
+  padding: 0 16px 6px;
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--fg-3);
+}
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 16px; cursor: pointer;
+  font-size: 0.78rem; font-weight: 500; color: var(--fg-2);
+  transition: all 0.11s; position: relative;
+}
+.nav-item:hover { background: var(--surface-2); color: var(--fg); }
+.nav-item.active { color: var(--fg); font-weight: 600; background: var(--canvas); }
+.nav-item.active::before {
+  content: ''; position: absolute;
+  left: 0; top: 25%; bottom: 25%;
+  width: 2px; border-radius: 2px;
+  background: var(--emerald);
+}
+.nav-icon { font-size: 0.85rem; width: 16px; text-align: center; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto;
+  min-width: 18px; height: 18px;
+  padding: 0 5px;
+  border-radius: 99px;
+  background: var(--red);
+  color: #fff;
+  font-size: 0.58rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-badge.gold { background: var(--gold); }
+.sidebar-bottom {
+  margin-top: auto; border-top: 1px solid var(--line);
+  padding: 14px 16px;
+}
+.sidebar-user {
+  display: flex; gap: 10px; align-items: center;
+}
+.su-av {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--emerald), var(--ink));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.62rem; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+}
+.su-name { font-size: 0.75rem; font-weight: 600; color: var(--fg); }
+.su-role { font-size: 0.64rem; color: var(--fg-3); margin-top: 1px; }
+
+/* ── MAIN ── */
+.main { flex: 1; min-width: 0; overflow-y: auto; display: flex; flex-direction: column; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.tab-panel.active.builder-panel { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+/* Page header */
+.page-head {
+  padding: 28px 32px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: flex-end;
+  justify-content: space-between; gap: 16px;
+  flex-wrap: wrap;
+}
+.ph-label {
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--fg-3); margin-bottom: 5px;
+}
+.ph-title {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 1.4rem; font-weight: 400; letter-spacing: -0.01em;
+  color: var(--fg);
+}
+.ph-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* Buttons */
+.btn-em {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 0 16px; height: 34px; border-radius: var(--r-sm);
+  background: var(--emerald); color: #fff;
+  font-size: 0.75rem; font-weight: 600; border: none;
+  cursor: pointer; transition: background 0.12s;
+}
+.btn-em:hover { background: var(--em-mid); }
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 0 14px; height: 32px; border-radius: var(--r-sm);
+  background: transparent; border: 1px solid var(--line);
+  color: var(--fg-2); font-size: 0.74rem; font-weight: 500;
+  cursor: pointer; transition: all 0.12s;
+}
+.btn-ghost:hover { background: var(--surface); color: var(--fg); }
+.btn-ink {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 0 16px; height: 34px; border-radius: var(--r-sm);
+  background: var(--fg); color: var(--canvas);
+  font-size: 0.75rem; font-weight: 600; border: none;
+  cursor: pointer; transition: background 0.12s;
+}
+.btn-ink:hover { background: var(--emerald); }
+
+/* Pills */
+.pill {
+  display: inline-flex; align-items: center;
+  padding: 3px 9px; border-radius: 99px;
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+}
+.pill-em    { background: var(--em-light); color: var(--emerald); }
+.pill-gld   { background: var(--gold-lt);  color: var(--gold); }
+.pill-red   { background: var(--red-lt);   color: var(--red); }
+.pill-blue  { background: var(--blue-lt);  color: var(--blue); }
+.pill-neu   { background: var(--surface-2); color: var(--fg-2); border: 1px solid var(--line); }
+
+/* ══════════════════════════════════════
+   TAB: HOME / OVERVIEW
+══════════════════════════════════════ */
+.home-body { padding: 28px 32px; display: flex; flex-direction: column; gap: 28px; }
+
+/* KPI strip */
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 1px; background: var(--line);
+  border: 1px solid var(--line); border-radius: var(--r); overflow: hidden;
+}
+.kpi { background: var(--surface); padding: 18px 22px; }
+.kpi-val {
+  font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em;
+  color: var(--fg); font-variant-numeric: tabular-nums; line-height: 1;
+  margin-bottom: 4px;
+}
+.kpi-val.em { color: var(--emerald); }
+.kpi-val.gld { color: var(--gold); }
+.kpi-lbl { font-size: 0.65rem; color: var(--fg-3); font-weight: 500; }
+.kpi-delta { font-size: 0.62rem; color: var(--em-mid); font-weight: 600; margin-top: 4px; }
+
+/* Section header */
+.sec-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.sec-title {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 1rem; font-weight: 400; color: var(--fg);
+}
+.sec-link {
+  font-size: 0.7rem; font-weight: 600; color: var(--emerald);
+  cursor: pointer; text-decoration: none;
+}
+.sec-link:hover { text-decoration: underline; }
+
+/* Course cards */
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.course-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.course-card:hover { border-color: var(--fg-3); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.cc-thumb {
+  height: 90px;
+  position: relative; overflow: hidden;
+  display: flex; align-items: flex-end;
+  padding: 10px 14px;
+}
+.cc-thumb-bg { position: absolute; inset: 0; }
+.cc-thumb-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.45), transparent 55%); }
+.cc-thumb-label {
+  position: relative; z-index: 1;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 0.78rem; color: #fff; line-height: 1.2;
+}
+.cc-body { padding: 14px 16px 16px; }
+.cc-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.cc-title { font-size: 0.8rem; font-weight: 600; color: var(--fg); margin-bottom: 4px; line-height: 1.35; }
+.cc-stats { display: flex; gap: 14px; }
+.cc-stat { font-size: 0.66rem; color: var(--fg-3); display: flex; align-items: center; gap: 3px; }
+.cc-prog { margin-top: 10px; }
+.cc-prog-bar { height: 3px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.cc-prog-fill { height: 100%; background: var(--emerald); border-radius: 99px; }
+.cc-prog-lbl { display: flex; justify-content: space-between; margin-top: 5px; }
+.cc-prog-lbl span { font-size: 0.6rem; color: var(--fg-3); }
+.cc-prog-lbl strong { font-size: 0.6rem; color: var(--fg-2); font-weight: 600; }
+
+/* Pending queue */
+.pending-list { display: flex; flex-direction: column; gap: 8px; }
+.pending-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 13px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  cursor: pointer; transition: border-color 0.12s;
+}
+.pending-item:hover { border-color: var(--fg-3); }
+.pi-ico { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+.pi-body { flex: 1; min-width: 0; }
+.pi-title { font-size: 0.78rem; font-weight: 600; color: var(--fg); margin-bottom: 2px; }
+.pi-sub { font-size: 0.68rem; color: var(--fg-3); }
+.pi-age { font-size: 0.64rem; color: var(--fg-3); flex-shrink: 0; margin-top: 2px; }
+.pi-action { flex-shrink: 0; }
+
+/* Earnings card */
+.earnings-row {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+.earn-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 18px 20px;
+}
+.earn-lbl { font-size: 0.63rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 8px; }
+.earn-val { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.03em; color: var(--fg); font-variant-numeric: tabular-nums; }
+.earn-val.em { color: var(--emerald); }
+.earn-delta { font-size: 0.65rem; color: var(--em-mid); font-weight: 600; margin-top: 4px; }
+.earn-note { font-size: 0.63rem; color: var(--fg-3); margin-top: 3px; }
+
+/* ══════════════════════════════════════
+   TAB: MY COURSES
+══════════════════════════════════════ */
+.courses-body { padding: 24px 32px; }
+.filter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.filter-chip {
+  padding: 5px 12px; border-radius: 99px;
+  font-size: 0.68rem; font-weight: 600;
+  border: 1px solid var(--line); background: var(--surface);
+  color: var(--fg-2); cursor: pointer; transition: all 0.11s;
+}
+.filter-chip:hover { background: var(--surface-2); color: var(--fg); }
+.filter-chip.active { background: var(--fg); color: var(--canvas); border-color: var(--fg); }
+
+.course-list { display: flex; flex-direction: column; gap: 10px; }
+.course-row {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 16px 18px;
+  cursor: pointer; transition: border-color 0.12s;
+}
+.course-row:hover { border-color: var(--fg-3); }
+.cr-thumb {
+  width: 64px; height: 44px; border-radius: 7px;
+  flex-shrink: 0; overflow: hidden; position: relative;
+}
+.cr-thumb-bg { position: absolute; inset: 0; }
+.cr-info { flex: 1; min-width: 0; }
+.cr-title { font-size: 0.82rem; font-weight: 600; color: var(--fg); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cr-meta { display: flex; gap: 14px; flex-wrap: wrap; }
+.cr-meta span { font-size: 0.66rem; color: var(--fg-3); display: flex; align-items: center; gap: 3px; }
+.cr-stats { display: flex; gap: 20px; flex-shrink: 0; }
+.cr-stat { text-align: right; }
+.cr-stat-val { font-size: 0.85rem; font-weight: 700; color: var(--fg); font-variant-numeric: tabular-nums; }
+.cr-stat-lbl { font-size: 0.6rem; color: var(--fg-3); }
+.cr-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+/* ══════════════════════════════════════
+   TAB: COURSE BUILDER
+══════════════════════════════════════ */
+.builder-shell {
+  display: flex; flex: 1;
+  overflow: hidden; min-height: 0;
+}
+
+/* Builder left: outline */
+.builder-outline {
+  width: 280px; flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.bo-head {
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.bo-course-title {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 0.95rem; color: var(--fg); margin-bottom: 6px;
+  line-height: 1.2;
+}
+.bo-meta { display: flex; gap: 8px; align-items: center; }
+.bo-body { flex: 1; overflow-y: auto; padding: 10px 0 16px; }
+
+/* Outline items */
+.bo-chapter {
+  margin-bottom: 4px;
+}
+.bo-ch-head {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 14px;
+  cursor: pointer; user-select: none;
+  font-size: 0.75rem; font-weight: 700; color: var(--fg);
+  transition: background 0.11s;
+}
+.bo-ch-head:hover { background: var(--surface-2); }
+.bo-caret { font-size: 0.55rem; color: var(--fg-3); transition: transform 0.14s; flex-shrink: 0; }
+.bo-chapter.open .bo-caret { transform: rotate(90deg); }
+.bo-ch-name { flex: 1; }
+.bo-ch-actions {
+  display: flex; gap: 3px; opacity: 0;
+  transition: opacity 0.11s;
+}
+.bo-ch-head:hover .bo-ch-actions { opacity: 1; }
+.bo-icon-btn {
+  width: 20px; height: 20px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; color: var(--fg-3); cursor: pointer;
+  transition: background 0.1s;
+}
+.bo-icon-btn:hover { background: var(--line); color: var(--fg); }
+.bo-sec-label {
+  padding: 5px 14px 4px 28px;
+  font-size: 0.58rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--fg-3);
+}
+.bo-lesson {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 14px 6px 30px;
+  cursor: pointer; font-size: 0.74rem; color: var(--fg-2);
+  transition: all 0.11s; position: relative;
+}
+.bo-lesson:hover { background: var(--surface-2); color: var(--fg); }
+.bo-lesson.active { background: var(--em-light); color: var(--emerald); font-weight: 600; }
+.bo-lesson.active::before {
+  content: ''; position: absolute; left: 0; top: 15%; bottom: 15%;
+  width: 2px; border-radius: 2px; background: var(--emerald);
+}
+.bo-les-icon { font-size: 0.7rem; flex-shrink: 0; }
+.bo-les-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bo-les-type { font-size: 0.58rem; color: var(--fg-3); flex-shrink: 0; }
+.bo-add-lesson {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 14px 5px 30px;
+  font-size: 0.7rem; color: var(--fg-3); cursor: pointer;
+  transition: color 0.11s;
+}
+.bo-add-lesson:hover { color: var(--emerald); }
+.bo-add-ch {
+  margin: 8px 14px 0;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px;
+  border: 1.5px dashed var(--line);
+  border-radius: 8px;
+  font-size: 0.7rem; font-weight: 600; color: var(--fg-3);
+  cursor: pointer; transition: all 0.12s;
+}
+.bo-add-ch:hover { border-color: var(--emerald); color: var(--emerald); background: var(--em-light); }
+
+/* Builder center: lesson editor */
+.builder-editor {
+  flex: 1; min-width: 0;
+  overflow-y: auto;
+  background: var(--canvas);
+  display: flex; flex-direction: column;
+}
+.be-topbar {
+  height: 48px; background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 20px; flex-shrink: 0;
+}
+.be-breadcrumb { font-size: 0.7rem; color: var(--fg-3); flex: 1; }
+.be-breadcrumb strong { color: var(--fg); }
+.be-status { font-size: 0.65rem; color: var(--fg-3); display: flex; align-items: center; gap: 5px; }
+.be-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+.be-dot.saved { background: var(--emerald); }
+
+.be-body { padding: 28px 32px; flex: 1; max-width: 780px; }
+.be-field { margin-bottom: 22px; }
+.be-label {
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--fg-3); margin-bottom: 7px;
+}
+.be-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  padding: 10px 14px;
+  font-size: 0.85rem; color: var(--fg);
+  outline: none; transition: border-color 0.12s;
+}
+.be-input:focus { border-color: var(--emerald); }
+.be-input::placeholder { color: var(--fg-3); }
+.be-textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  padding: 10px 14px;
+  font-size: 0.82rem; color: var(--fg);
+  outline: none; resize: vertical; min-height: 80px;
+  line-height: 1.6; transition: border-color 0.12s;
+}
+.be-textarea:focus { border-color: var(--emerald); }
+.be-select {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  padding: 8px 12px;
+  font-size: 0.8rem; color: var(--fg);
+  outline: none; cursor: pointer;
+}
+.be-select:focus { border-color: var(--emerald); }
+
+/* Content blocks */
+.content-blocks { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.content-block {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+.cb-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.cb-drag { font-size: 0.7rem; color: var(--fg-3); cursor: grab; }
+.cb-type { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-2); flex: 1; }
+.cb-remove { font-size: 0.7rem; color: var(--fg-3); cursor: pointer; transition: color 0.1s; }
+.cb-remove:hover { color: var(--red); }
+.cb-inner { padding: 14px; }
+
+.upload-zone {
+  border: 1.5px dashed var(--line);
+  border-radius: 8px;
+  padding: 22px;
+  text-align: center;
+  cursor: pointer; transition: all 0.12s;
+  background: var(--surface-2);
+}
+.upload-zone:hover { border-color: var(--emerald); background: var(--em-light); }
+.uz-icon { font-size: 1.4rem; margin-bottom: 6px; }
+.uz-label { font-size: 0.75rem; font-weight: 600; color: var(--fg-2); }
+.uz-sub { font-size: 0.65rem; color: var(--fg-3); margin-top: 3px; }
+
+.add-block-row {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px;
+}
+.add-block-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border-radius: 7px;
+  border: 1px dashed var(--line);
+  background: transparent;
+  font-size: 0.7rem; font-weight: 600; color: var(--fg-3);
+  cursor: pointer; transition: all 0.11s;
+}
+.add-block-btn:hover { border-color: var(--emerald); color: var(--emerald); background: var(--em-light); }
+
+/* Settings panel (right drawer style) */
+.builder-settings {
+  width: 260px; flex-shrink: 0;
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+  overflow-y: auto;
+  padding: 16px 16px 20px;
+  transition: width 0.18s ease, padding 0.18s ease, border 0.18s ease;
+}
+.builder-settings.collapsed {
+  width: 0; padding: 0; border-left: none; overflow: hidden;
+}
+.bs-section { margin-bottom: 22px; }
+.bs-head {
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--fg-3);
+  padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  margin-bottom: 12px;
+}
+.bs-field { margin-bottom: 10px; }
+.bs-label { font-size: 0.68rem; font-weight: 600; color: var(--fg-2); margin-bottom: 5px; }
+.bs-input {
+  width: 100%; border: 1px solid var(--line); border-radius: 7px;
+  background: var(--surface-2); padding: 7px 10px;
+  font-size: 0.76rem; color: var(--fg); outline: none;
+}
+.bs-input:focus { border-color: var(--emerald); }
+.bs-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.bs-toggle-lbl { font-size: 0.74rem; color: var(--fg-2); }
+.toggle {
+  width: 36px; height: 20px; border-radius: 99px;
+  background: var(--line); position: relative;
+  cursor: pointer; transition: background 0.15s;
+  flex-shrink: 0;
+}
+.toggle.on { background: var(--emerald); }
+.toggle::after {
+  content: ''; position: absolute;
+  top: 3px; left: 3px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #fff; transition: transform 0.15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle.on::after { transform: translateX(16px); }
+.team-member {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 0; border-bottom: 1px solid var(--line);
+}
+.tm-av {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--ink); display: flex; align-items: center; justify-content: center;
+  font-size: 0.58rem; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.tm-name { flex: 1; font-size: 0.74rem; font-weight: 600; color: var(--fg); }
+.tm-role { font-size: 0.6rem; color: var(--fg-3); }
+
+/* ══════════════════════════════════════
+   TAB: STUDENTS
+══════════════════════════════════════ */
+.students-body { padding: 24px 32px; }
+.student-table {
+  width: 100%; border-collapse: collapse;
+}
+.st-head th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--fg-3);
+  border-bottom: 1px solid var(--line);
+}
+.student-row td {
+  padding: 13px 14px;
+  font-size: 0.78rem; color: var(--fg);
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.student-row:hover td { background: var(--surface-2); }
+.std-av {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--surface-2); border: 1px solid var(--line);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.6rem; font-weight: 700; color: var(--fg-2);
+  margin-right: 8px; vertical-align: middle;
+}
+.prog-mini { display: flex; align-items: center; gap: 8px; }
+.prog-bar-mini { flex: 1; height: 4px; background: var(--line); border-radius: 99px; overflow: hidden; max-width: 80px; }
+.prog-fill-mini { height: 100%; background: var(--emerald); border-radius: 99px; }
+.prog-pct { font-size: 0.65rem; font-weight: 700; color: var(--fg-2); min-width: 30px; font-variant-numeric: tabular-nums; }
+
+/* ══════════════════════════════════════
+   TAB: EARNINGS
+══════════════════════════════════════ */
+.earnings-body { padding: 24px 32px; }
+.earn-big {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+}
+.eb-main { flex: 1; min-width: 0; }
+.eb-lbl { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 6px; }
+.eb-val { font-size: 2.4rem; font-weight: 700; letter-spacing: -0.04em; color: var(--fg); font-variant-numeric: tabular-nums; line-height: 1; }
+.eb-delta { font-size: 0.72rem; color: var(--em-mid); font-weight: 600; margin-top: 6px; }
+.eb-note { font-size: 0.66rem; color: var(--fg-3); margin-top: 4px; }
+.payout-btn {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 5px;
+}
+.transaction-list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.tx-head {
+  display: grid; grid-template-columns: 1fr 140px 100px 100px;
+  padding: 10px 18px;
+  background: var(--surface-2);
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--fg-3);
+  border-bottom: 1px solid var(--line);
+}
+.tx-row {
+  display: grid; grid-template-columns: 1fr 140px 100px 100px;
+  padding: 13px 18px;
+  font-size: 0.76rem; color: var(--fg);
+  border-bottom: 1px solid var(--line);
+  transition: background 0.1s;
+}
+.tx-row:hover { background: var(--surface-2); }
+.tx-row:last-child { border-bottom: none; }
+.tx-course { font-weight: 500; }
+.tx-student { color: var(--fg-2); }
+.tx-date { color: var(--fg-3); }
+.tx-amount { font-weight: 700; color: var(--em-mid); font-variant-numeric: tabular-nums; }
+</style>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-logo">Olog<span>ee</span></div>
+  <div class="tb-role">Instructor</div>
+  <div class="tb-spacer"></div>
+  <div style="position:relative;">
+    <div class="tb-notif" id="notif-btn" onclick="toggleNotif()">
+      🔔
+      <div class="notif-dot"></div>
+    </div>
+    <div id="notif-dropdown" hidden style="position:absolute;top:42px;right:0;width:300px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:999;overflow:hidden;">
+      <div style="padding:12px 16px 8px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg-3);">Notifications</span>
+        <span style="font-size:0.65rem;color:var(--emerald);cursor:pointer;font-weight:600;">Mark all read</span>
+      </div>
+      <div style="display:flex;flex-direction:column;">
+        <div style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;background:var(--em-light);">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--emerald);margin-top:5px;flex-shrink:0;"></div>
+          <div><div style="font-size:0.74rem;font-weight:600;color:var(--fg);line-height:1.3;">Janelle Stevens posted in Discussion</div><div style="font-size:0.65rem;color:var(--fg-3);margin-top:2px;">Foundations of Restorative Practice · 2h ago</div></div>
+        </div>
+        <div style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;background:var(--em-light);">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--emerald);margin-top:5px;flex-shrink:0;"></div>
+          <div><div style="font-size:0.74rem;font-weight:600;color:var(--fg);line-height:1.3;">New enrollment: Marcus T.</div><div style="font-size:0.65rem;color:var(--fg-3);margin-top:2px;">Circle Facilitation Practicum · 4h ago</div></div>
+        </div>
+        <div style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;">
+          <div style="width:6px;height:6px;border-radius:50%;background:transparent;border:1px solid var(--line);border-radius:50%;margin-top:5px;flex-shrink:0;"></div>
+          <div><div style="font-size:0.74rem;color:var(--fg);line-height:1.3;">Assignment submitted: Keisha R.</div><div style="font-size:0.65rem;color:var(--fg-3);margin-top:2px;">Foundations of Restorative Practice · Yesterday</div></div>
+        </div>
+        <div style="display:flex;gap:10px;padding:12px 16px;cursor:pointer;">
+          <div style="width:6px;height:6px;border-radius:50%;background:transparent;border:1px solid var(--line);border-radius:50%;margin-top:5px;flex-shrink:0;"></div>
+          <div><div style="font-size:0.74rem;color:var(--fg);line-height:1.3;">Your course was approved</div><div style="font-size:0.65rem;color:var(--fg-3);margin-top:2px;">Trauma-Informed Circle Work · 2 days ago</div></div>
+        </div>
+      </div>
+      <div style="padding:10px 16px;border-top:1px solid var(--line);text-align:center;font-size:0.68rem;color:var(--emerald);cursor:pointer;font-weight:600;" onclick="go('home')">View all notifications</div>
+    </div>
+  </div>
+  <div class="tb-av">AC</div>
+</div>
+
+<!-- SHELL -->
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" id="nav-home" onclick="go('home')">
+        <span class="nav-icon">⊞</span> Dashboard
+      </div>
+      <div class="nav-item" id="nav-courses" onclick="go('courses')">
+        <span class="nav-icon">📚</span> My Courses
+      </div>
+      <div class="nav-item" id="nav-students" onclick="go('students')">
+        <span class="nav-icon">👥</span> Students
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Content</div>
+      <div class="nav-item" id="nav-builder" onclick="go('builder')">
+        <span class="nav-icon">✏️</span> Course Builder
+      </div>
+      <div class="nav-item" id="nav-pending" onclick="go('pending')">
+        <span class="nav-icon">📋</span> Pending Review
+        <span class="nav-badge">4</span>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Financial</div>
+      <div class="nav-item" id="nav-earnings" onclick="go('earnings')">
+        <span class="nav-icon">💰</span> Earnings
+        <span class="nav-badge gold">$</span>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Content</div>
+      <div class="nav-item" id="nav-documents" onclick="go('documents')">
+        <span class="nav-icon">📁</span> Documents
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Community</div>
+      <div class="nav-item" id="nav-discussion" onclick="go('discussion')">
+        <span class="nav-icon">💬</span> Discussion
+        <span class="nav-badge">2</span>
+      </div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-user">
+        <div class="su-av">AC</div>
+        <div>
+          <div class="su-name">Dr. Amara Cole</div>
+          <div class="su-role">Instructor</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- ══ TAB: HOME ══ -->
+    <div class="tab-panel active" id="tab-home">
+      <div class="page-head">
+        <div>
+          <div class="ph-label">Instructor Dashboard</div>
+          <div class="ph-title">Good afternoon, Dr. Cole</div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn-ghost">📊 Analytics</button>
+          <button class="btn-ink" onclick="go('builder')">+ New Course</button>
+        </div>
+      </div>
+      <div class="home-body">
+
+        <!-- KPIs -->
+        <div class="kpi-strip">
+          <div class="kpi">
+            <div class="kpi-val">3</div>
+            <div class="kpi-lbl">Active courses</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-val">1,240</div>
+            <div class="kpi-lbl">Total students</div>
+            <div class="kpi-delta">↑ 48 this month</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-val em">68%</div>
+            <div class="kpi-lbl">Avg. completion</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-val gld">$4,820</div>
+            <div class="kpi-lbl">Earnings this month</div>
+            <div class="kpi-delta">↑ 12% vs last month</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-val">4</div>
+            <div class="kpi-lbl">Pending review</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-val">4.9</div>
+            <div class="kpi-lbl">Avg. rating</div>
+          </div>
+        </div>
+
+        <!-- My Courses -->
+        <div>
+          <div class="sec-head">
+            <div class="sec-title">My Courses</div>
+            <a class="sec-link" onclick="go('courses')">View all →</a>
+          </div>
+          <div class="course-grid">
+            <div class="course-card" onclick="go('builder')">
+              <div class="cc-thumb">
+                <div class="cc-thumb-bg" style="background:linear-gradient(135deg,#14302A,#1A7A4A,#182838)"></div>
+                <div class="cc-thumb-overlay"></div>
+                <div class="cc-thumb-label">Foundations of Restorative Practice</div>
+              </div>
+              <div class="cc-body">
+                <div class="cc-meta">
+                  <span class="pill pill-em">Published</span>
+                </div>
+                <div class="cc-title">Foundations of Restorative Practice</div>
+                <div class="cc-stats">
+                  <div class="cc-stat">👥 842 students</div>
+                  <div class="cc-stat">⭐ 4.9</div>
+                  <div class="cc-stat">📖 6 chapters</div>
+                </div>
+                <div class="cc-prog">
+                  <div class="cc-prog-bar"><div class="cc-prog-fill" style="width:72%"></div></div>
+                  <div class="cc-prog-lbl"><span>Avg. completion</span><strong>72%</strong></div>
+                </div>
+              </div>
+            </div>
+            <div class="course-card">
+              <div class="cc-thumb">
+                <div class="cc-thumb-bg" style="background:linear-gradient(135deg,#2A0E20,#7A2A4A,#3A1830)"></div>
+                <div class="cc-thumb-overlay"></div>
+                <div class="cc-thumb-label">Trauma-Informed Facilitation</div>
+              </div>
+              <div class="cc-body">
+                <div class="cc-meta">
+                  <span class="pill pill-em">Published</span>
+                </div>
+                <div class="cc-title">Trauma-Informed Facilitation Skills</div>
+                <div class="cc-stats">
+                  <div class="cc-stat">👥 285 students</div>
+                  <div class="cc-stat">⭐ 4.8</div>
+                  <div class="cc-stat">📖 4 chapters</div>
+                </div>
+                <div class="cc-prog">
+                  <div class="cc-prog-bar"><div class="cc-prog-fill" style="width:58%"></div></div>
+                  <div class="cc-prog-lbl"><span>Avg. completion</span><strong>58%</strong></div>
+                </div>
+              </div>
+            </div>
+            <div class="course-card">
+              <div class="cc-thumb">
+                <div class="cc-thumb-bg" style="background:linear-gradient(135deg,#1A1A30,#2A4A7A,#1A3A5A)"></div>
+                <div class="cc-thumb-overlay"></div>
+                <div class="cc-thumb-label">Restorative Practitioner Cert Prep</div>
+              </div>
+              <div class="cc-body">
+                <div class="cc-meta">
+                  <span class="pill pill-gld">Draft</span>
+                </div>
+                <div class="cc-title">Restorative Practitioner Cert Prep</div>
+                <div class="cc-stats">
+                  <div class="cc-stat">📖 3 of 6 chapters</div>
+                  <div class="cc-stat">⏱ ~40% done</div>
+                </div>
+                <div class="cc-prog">
+                  <div class="cc-prog-bar"><div class="cc-prog-fill" style="width:40%;background:var(--gold)"></div></div>
+                  <div class="cc-prog-lbl"><span>Build progress</span><strong style="color:var(--gold)">40%</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending -->
+        <div>
+          <div class="sec-head">
+            <div class="sec-title">Needs Your Attention</div>
+            <a class="sec-link" onclick="go('pending')">View all →</a>
+          </div>
+          <div class="pending-list">
+            <div class="pending-item">
+              <div class="pi-ico">📋</div>
+              <div class="pi-body">
+                <div class="pi-title">Reflection Journal — Marcus T.</div>
+                <div class="pi-sub">Foundations of Restorative Practice · Chapter 2 Assignment</div>
+              </div>
+              <div class="pi-age">2h ago</div>
+              <div class="pi-action"><button class="btn-em" style="height:28px;padding:0 12px;font-size:0.7rem">Grade</button></div>
+            </div>
+            <div class="pending-item">
+              <div class="pi-ico">💬</div>
+              <div class="pi-body">
+                <div class="pi-title">Unanswered question — Janelle Stevens</div>
+                <div class="pi-sub">"How do you handle a community member who actively resists…"</div>
+              </div>
+              <div class="pi-age">2h ago</div>
+              <div class="pi-action"><button class="btn-ghost" style="height:28px;font-size:0.7rem">Reply</button></div>
+            </div>
+            <div class="pending-item">
+              <div class="pi-ico">📋</div>
+              <div class="pi-body">
+                <div class="pi-title">Reflection Journal — Priya M.</div>
+                <div class="pi-sub">Trauma-Informed Facilitation · Chapter 4 Assignment</div>
+              </div>
+              <div class="pi-age">Yesterday</div>
+              <div class="pi-action"><button class="btn-em" style="height:28px;padding:0 12px;font-size:0.7rem">Grade</button></div>
+            </div>
+            <div class="pending-item">
+              <div class="pi-ico">⭐</div>
+              <div class="pi-body">
+                <div class="pi-title">New course review — 5 stars</div>
+                <div class="pi-sub">Foundations of Restorative Practice · "Transformative content…"</div>
+              </div>
+              <div class="pi-age">3d ago</div>
+              <div class="pi-action"><button class="btn-ghost" style="height:28px;font-size:0.7rem">View</button></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Earnings -->
+        <div>
+          <div class="sec-head">
+            <div class="sec-title">Earnings Summary</div>
+            <a class="sec-link" onclick="go('earnings')">Full report →</a>
+          </div>
+          <div class="earnings-row">
+            <div class="earn-card">
+              <div class="earn-lbl">This Month</div>
+              <div class="earn-val em">$4,820</div>
+              <div class="earn-delta">↑ 12% vs Oct</div>
+            </div>
+            <div class="earn-card">
+              <div class="earn-lbl">Pending Payout</div>
+              <div class="earn-val">$2,340</div>
+              <div class="earn-note">Releases Nov 1</div>
+            </div>
+            <div class="earn-card">
+              <div class="earn-lbl">All-Time</div>
+              <div class="earn-val">$38,210</div>
+              <div class="earn-delta">Since Jan 2024</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /tab-home -->
+
+    <!-- ══ TAB: MY COURSES ══ -->
+    <div class="tab-panel" id="tab-courses">
+      <div class="page-head">
+        <div>
+          <div class="ph-label">Content</div>
+          <div class="ph-title">My Courses</div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn-ink" onclick="go('builder')">+ New Course</button>
+        </div>
+      </div>
+      <div class="courses-body">
+        <div class="filter-bar">
+          <div class="filter-chip active">All (3)</div>
+          <div class="filter-chip">Published (2)</div>
+          <div class="filter-chip">Draft (1)</div>
+          <div class="filter-chip">Archived (0)</div>
+        </div>
+        <div class="course-list">
+          <div class="course-row" onclick="go('builder')">
+            <div class="cr-thumb"><div class="cr-thumb-bg" style="background:linear-gradient(135deg,#14302A,#1A7A4A)"></div></div>
+            <div class="cr-info">
+              <div class="cr-title">Foundations of Restorative Practice</div>
+              <div class="cr-meta">
+                <span><span class="pill pill-em" style="padding:2px 7px">Published</span></span>
+                <span>📖 6 chapters · 24 lessons</span>
+                <span>⏱ 4.5 hrs</span>
+                <span>💰 $85</span>
+                <span>Updated 3d ago</span>
+              </div>
+            </div>
+            <div class="cr-stats">
+              <div class="cr-stat"><div class="cr-stat-val">842</div><div class="cr-stat-lbl">Students</div></div>
+              <div class="cr-stat"><div class="cr-stat-val">72%</div><div class="cr-stat-lbl">Completion</div></div>
+              <div class="cr-stat"><div class="cr-stat-val">4.9 ⭐</div><div class="cr-stat-lbl">Rating</div></div>
+            </div>
+            <div class="cr-actions">
+              <button class="btn-ghost" style="height:30px;font-size:0.7rem">Preview</button>
+              <button class="btn-em" style="height:30px;font-size:0.7rem" onclick="event.stopPropagation();go('builder')">Edit</button>
+            </div>
+          </div>
+          <div class="course-row">
+            <div class="cr-thumb"><div class="cr-thumb-bg" style="background:linear-gradient(135deg,#2A0E20,#7A2A4A)"></div></div>
+            <div class="cr-info">
+              <div class="cr-title">Trauma-Informed Facilitation Skills</div>
+              <div class="cr-meta">
+                <span><span class="pill pill-em" style="padding:2px 7px">Published</span></span>
+                <span>📖 4 chapters · 18 lessons</span>
+                <span>⏱ 3.2 hrs</span>
+                <span>💰 $69</span>
+              </div>
+            </div>
+            <div class="cr-stats">
+              <div class="cr-stat"><div class="cr-stat-val">285</div><div class="cr-stat-lbl">Students</div></div>
+              <div class="cr-stat"><div class="cr-stat-val">58%</div><div class="cr-stat-lbl">Completion</div></div>
+              <div class="cr-stat"><div class="cr-stat-val">4.8 ⭐</div><div class="cr-stat-lbl">Rating</div></div>
+            </div>
+            <div class="cr-actions">
+              <button class="btn-ghost" style="height:30px;font-size:0.7rem">Preview</button>
+              <button class="btn-em" style="height:30px;font-size:0.7rem">Edit</button>
+            </div>
+          </div>
+          <div class="course-row">
+            <div class="cr-thumb"><div class="cr-thumb-bg" style="background:linear-gradient(135deg,#1A1A30,#2A4A7A)"></div></div>
+            <div class="cr-info">
+              <div class="cr-title">Restorative Practitioner Certification Prep</div>
+              <div class="cr-meta">
+                <span><span class="pill pill-gld" style="padding:2px 7px">Draft</span></span>
+                <span>📖 3 of 6 chapters built</span>
+                <span>⏱ Est. 5 hrs</span>
+                <span>💰 $95</span>
+              </div>
+            </div>
+            <div class="cr-stats">
+              <div class="cr-stat"><div class="cr-stat-val">—</div><div class="cr-stat-lbl">Students</div></div>
+              <div class="cr-stat"><div class="cr-stat-val">40%</div><div class="cr-stat-lbl">Built</div></div>
+            </div>
+            <div class="cr-actions">
+              <button class="btn-ink" style="height:30px;font-size:0.7rem" onclick="go('builder')">Continue Building</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /tab-courses -->
+
+    <!-- ══ TAB: COURSE BUILDER ══ -->
+    <div class="tab-panel builder-panel" id="tab-builder">
+      <div class="builder-shell">
+
+        <!-- Left: outline -->
+        <div class="builder-outline">
+          <div class="bo-head">
+            <div class="bo-course-title">Restorative Practitioner Certification Prep</div>
+            <div class="bo-meta">
+              <span class="pill pill-gld">Draft</span>
+              <span style="font-size:0.64rem;color:var(--fg-3);margin-left:4px">40% built</span>
+            </div>
+          </div>
+          <div class="bo-body">
+
+            <!-- Chapter 1 — done -->
+            <div class="bo-chapter open">
+              <div class="bo-ch-head" onclick="toggleBoChapter(this)">
+                <span class="bo-caret">▶</span>
+                <span class="bo-ch-name">Chapter 1 · The RP Framework</span>
+                <div class="bo-ch-actions">
+                  <div class="bo-icon-btn">✏️</div>
+                  <div class="bo-icon-btn">⋯</div>
+                </div>
+              </div>
+              <div class="bo-sec-label">Section A · Principles</div>
+              <div class="bo-lesson" onclick="setLesson('What Is Restorative Practice?','Video','Chapter 1 · Section A',this)">
+                <span class="bo-les-icon">▶</span>
+                <span class="bo-les-name">What Is Restorative Practice?</span>
+                <span class="bo-les-type">Video</span>
+              </div>
+              <div class="bo-lesson" onclick="setLesson('The Five Core Pillars','Reading','Chapter 1 · Section A',this)">
+                <span class="bo-les-icon">📄</span>
+                <span class="bo-les-name">The Five Core Pillars</span>
+                <span class="bo-les-type">Reading</span>
+              </div>
+              <div class="bo-sec-label">Section B · History</div>
+              <div class="bo-lesson" onclick="setLesson('Origins & Evolution','Video','Chapter 1 · Section B',this)">
+                <span class="bo-les-icon">▶</span>
+                <span class="bo-les-name">Origins &amp; Evolution</span>
+                <span class="bo-les-type">Video</span>
+              </div>
+              <div class="bo-lesson" onclick="setLesson('Ch. 1 Knowledge Check','Quiz','Chapter 1 · Section B',this)">
+                <span class="bo-les-icon">✏️</span>
+                <span class="bo-les-name">Ch. 1 Knowledge Check</span>
+                <span class="bo-les-type">Quiz</span>
+              </div>
+              <div class="bo-add-lesson" onclick="">+ Add lesson to Chapter 1</div>
+            </div>
+
+            <!-- Chapter 2 — active -->
+            <div class="bo-chapter open">
+              <div class="bo-ch-head" onclick="toggleBoChapter(this)">
+                <span class="bo-caret">▶</span>
+                <span class="bo-ch-name">Chapter 2 · Facilitation Skills</span>
+                <div class="bo-ch-actions">
+                  <div class="bo-icon-btn">✏️</div>
+                  <div class="bo-icon-btn">⋯</div>
+                </div>
+              </div>
+              <div class="bo-sec-label">Section A · Circle Practice</div>
+              <div class="bo-lesson active" id="active-lesson" onclick="setLesson('Running a Restorative Circle','Video','Chapter 2 · Section A',this)">
+                <span class="bo-les-icon">▶</span>
+                <span class="bo-les-name">Running a Restorative Circle</span>
+                <span class="bo-les-type">Video</span>
+              </div>
+              <div class="bo-lesson" onclick="setLesson('Facilitation Script & Guides','Reading','Chapter 2 · Section A',this)">
+                <span class="bo-les-icon">📄</span>
+                <span class="bo-les-name">Facilitation Script &amp; Guides</span>
+                <span class="bo-les-type">Reading</span>
+              </div>
+              <div class="bo-add-lesson">+ Add lesson to Chapter 2</div>
+            </div>
+
+            <!-- Chapter 3 — in progress -->
+            <div class="bo-chapter open">
+              <div class="bo-ch-head" onclick="toggleBoChapter(this)">
+                <span class="bo-caret">▶</span>
+                <span class="bo-ch-name">Chapter 3 · Advanced Applications</span>
+                <div class="bo-ch-actions">
+                  <div class="bo-icon-btn">✏️</div>
+                  <div class="bo-icon-btn">⋯</div>
+                </div>
+              </div>
+              <div class="bo-add-lesson">+ Add first lesson</div>
+            </div>
+
+            <!-- Chapters 4-6: shells -->
+            <div class="bo-chapter">
+              <div class="bo-ch-head" style="opacity:0.45">
+                <span class="bo-caret">▶</span>
+                <span class="bo-ch-name">Chapter 4 · Trauma Integration</span>
+                <div class="bo-ch-actions"><div class="bo-icon-btn">✏️</div></div>
+              </div>
+            </div>
+            <div class="bo-chapter">
+              <div class="bo-ch-head" style="opacity:0.45">
+                <span class="bo-caret">▶</span>
+                <span class="bo-ch-name">Chapter 5 · Program Building</span>
+                <div class="bo-ch-actions"><div class="bo-icon-btn">✏️</div></div>
+              </div>
+            </div>
+            <div class="bo-chapter">
+              <div class="bo-ch-head" style="opacity:0.45">
+                <span class="bo-caret">▶</span>
+                <span class="bo-ch-name">Chapter 6 · Capstone &amp; Certification</span>
+                <div class="bo-ch-actions"><div class="bo-icon-btn">✏️</div></div>
+              </div>
+            </div>
+
+            <div class="bo-add-ch">+ Add chapter</div>
+          </div>
+        </div>
+
+        <!-- Center: lesson editor -->
+        <div class="builder-editor">
+          <div class="be-topbar">
+            <button class="btn-ghost" style="height:28px;font-size:0.7rem;flex-shrink:0;" onclick="go('courses')">← Exit Builder</button>
+            <div style="width:1px;height:18px;background:var(--line);flex-shrink:0;"></div>
+            <div class="be-breadcrumb" id="be-breadcrumb">Chapter 2 · Section A · <strong>Running a Restorative Circle</strong></div>
+            <button id="settings-toggle" class="btn-ghost" style="height:28px;font-size:0.7rem;flex-shrink:0;margin-left:auto;" onclick="toggleSettings()">⚙ Settings</button>
+            <div class="be-status">
+              <div class="be-dot" id="be-dot"></div>
+              <span id="be-status-text">Unsaved changes</span>
+            </div>
+            <button class="btn-ghost" style="height:28px;font-size:0.7rem;margin-left:8px">Preview</button>
+            <button class="btn-em" style="height:28px;padding:0 12px;font-size:0.7rem;margin-left:4px" onclick="saveDraft()">Save</button>
+          </div>
+          <!-- Editor sub-tabs -->
+          <div style="display:flex;gap:0;border-bottom:1px solid var(--line);background:var(--surface);flex-shrink:0;padding:0 20px;">
+            <button id="etab-content" onclick="switchETab('content')" style="padding:10px 16px;font-size:0.72rem;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--emerald);color:var(--fg);margin-bottom:-1px;">Content</button>
+            <button id="etab-attachments" onclick="switchETab('attachments')" style="padding:10px 16px;font-size:0.72rem;font-weight:500;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--fg-2);margin-bottom:-1px;">Attachments</button>
+          </div>
+
+          <!-- Content tab -->
+          <div id="epanel-content" class="be-body">
+            <div class="be-field">
+              <div class="be-label">Lesson Title</div>
+              <input class="be-input" id="be-title" value="Running a Restorative Circle" placeholder="Lesson title…">
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+              <div class="be-field" style="flex:1;min-width:140px;">
+                <div class="be-label">Lesson Type</div>
+                <select class="be-select" id="be-type">
+                  <option selected>Video</option>
+                  <option>Reading</option>
+                  <option>Quiz</option>
+                  <option>Assignment</option>
+                  <option>Live Session</option>
+                </select>
+              </div>
+              <div class="be-field" style="flex:1;min-width:140px;">
+                <div class="be-label">Est. Duration</div>
+                <input class="be-input" value="14 min" placeholder="e.g. 8 min">
+              </div>
+              <div class="be-field" style="flex:1;min-width:140px;">
+                <div class="be-label">Gating</div>
+                <select class="be-select">
+                  <option selected>Sequential (unlock in order)</option>
+                  <option>Free access</option>
+                  <option>Quiz required first</option>
+                </select>
+              </div>
+            </div>
+            <div class="be-field">
+              <div class="be-label">Short Description</div>
+              <textarea class="be-textarea" placeholder="What will students learn in this lesson?">A step-by-step walkthrough of facilitating a restorative circle from opening to closing — including how to handle disruptions and manage the talking piece.</textarea>
+            </div>
+
+            <div class="be-label" style="margin-top:4px;">Content Blocks</div>
+            <div class="content-blocks">
+              <!-- Video block -->
+              <div class="content-block">
+                <div class="cb-head">
+                  <span class="cb-drag">⠿</span>
+                  <span class="cb-type">▶ Video</span>
+                  <span class="cb-remove">✕</span>
+                </div>
+                <div class="cb-inner">
+                  <div class="upload-zone">
+                    <div class="uz-icon">🎬</div>
+                    <div class="uz-label">Upload video or paste URL</div>
+                    <div class="uz-sub">MP4, MOV · up to 4GB · or YouTube / Vimeo link</div>
+                  </div>
+                </div>
+              </div>
+              <!-- Text block -->
+              <div class="content-block">
+                <div class="cb-head">
+                  <span class="cb-drag">⠿</span>
+                  <span class="cb-type">📄 Text &amp; Formatting</span>
+                  <span class="cb-remove">✕</span>
+                </div>
+                <div class="cb-inner">
+                  <textarea class="be-textarea" style="min-height:120px" placeholder="Add lesson text, context, or supplemental content…">The circle process has three distinct phases: opening, dialogue, and closing. Each phase serves a different purpose in the relational and restorative arc.
+
+Opening establishes safety and intention. The keeper introduces the talking piece, shares the circle guidelines, and invites a short check-in question so participants arrive in relationship with one another before the main dialogue begins.</textarea>
+                </div>
+              </div>
+              <!-- Image block -->
+              <div class="content-block">
+                <div class="cb-head">
+                  <span class="cb-drag">⠿</span>
+                  <span class="cb-type">🖼 Image</span>
+                  <span class="cb-remove">✕</span>
+                </div>
+                <div class="cb-inner">
+                  <div class="upload-zone">
+                    <div class="uz-icon">🖼</div>
+                    <div class="uz-label">Upload image</div>
+                    <div class="uz-sub">PNG, JPG, SVG · up to 20MB</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="add-block-row">
+              <button class="add-block-btn">▶ Video</button>
+              <button class="add-block-btn">📄 Text</button>
+              <button class="add-block-btn">🖼 Image</button>
+              <button class="add-block-btn">📎 File / Resource</button>
+              <button class="add-block-btn">✏️ Quiz</button>
+              <button class="add-block-btn">📋 Assignment</button>
+            </div>
+          </div><!-- /epanel-content -->
+
+          <!-- Attachments tab -->
+          <div id="epanel-attachments" class="be-body" hidden>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+              <div style="font-size:0.78rem;color:var(--fg-2);">Files learners can download from this lesson.</div>
+              <button class="btn-em" style="height:30px;font-size:0.7rem;">+ Upload file</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);">
+                <div style="width:32px;height:32px;border-radius:6px;background:var(--red-lt);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">📄</div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:0.78rem;font-weight:600;color:var(--fg);">Circle Facilitation Checklist.pdf</div>
+                  <div style="font-size:0.65rem;color:var(--fg-3);margin-top:1px;">PDF · 240 KB · Uploaded Oct 9</div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn-ghost" style="height:26px;font-size:0.65rem;">Rename</button>
+                  <button class="btn-ghost" style="height:26px;font-size:0.65rem;color:var(--red);">Remove</button>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);">
+                <div style="width:32px;height:32px;border-radius:6px;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">📋</div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:0.78rem;font-weight:600;color:var(--fg);">Opening Questions — Talking Piece Script.docx</div>
+                  <div style="font-size:0.65rem;color:var(--fg-3);margin-top:1px;">Word · 58 KB · Uploaded Oct 9</div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn-ghost" style="height:26px;font-size:0.65rem;">Rename</button>
+                  <button class="btn-ghost" style="height:26px;font-size:0.65rem;color:var(--red);">Remove</button>
+                </div>
+              </div>
+              <div style="margin-top:6px;border:1.5px dashed var(--line);border-radius:var(--r-sm);padding:20px;text-align:center;cursor:pointer;" onmouseenter="this.style.borderColor='var(--emerald)'" onmouseleave="this.style.borderColor='var(--line)'">
+                <div style="font-size:0.8rem;font-weight:600;color:var(--fg-2);">+ Drop files here or click to upload</div>
+                <div style="font-size:0.65rem;color:var(--fg-3);margin-top:4px;">PDF, DOCX, XLSX, PNG, ZIP · up to 100 MB each</div>
+              </div>
+            </div>
+          </div><!-- /epanel-attachments -->
+
+        </div><!-- /builder-editor -->
+
+        <!-- Right: settings -->
+        <div class="builder-settings collapsed" id="builder-settings-panel">
+          <div class="bs-section">
+            <div class="bs-head">Visibility</div>
+            <div class="bs-toggle">
+              <span class="bs-toggle-lbl">Free preview</span>
+              <div class="toggle" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="bs-toggle">
+              <span class="bs-toggle-lbl">Locked until previous complete</span>
+              <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="bs-toggle">
+              <span class="bs-toggle-lbl">Downloadable resources</span>
+              <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+          <div class="bs-section">
+            <div class="bs-head">Course Settings</div>
+            <div class="bs-field">
+              <div class="bs-label">Price</div>
+              <input class="bs-input" value="$95">
+            </div>
+            <div class="bs-field">
+              <div class="bs-label">Enrollment</div>
+              <select class="be-select" style="width:100%;font-size:0.75rem;">
+                <option>Open enrollment</option>
+                <option selected>Manual approval</option>
+                <option>Invite only</option>
+              </select>
+            </div>
+            <div class="bs-toggle" style="margin-top:10px">
+              <span class="bs-toggle-lbl">Certificate on completion</span>
+              <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+          <div class="bs-section">
+            <div class="bs-head">Team</div>
+            <div class="team-member">
+              <div class="tm-av">AC</div>
+              <div><div class="tm-name">Dr. Amara Cole</div><div class="tm-role">Lead Instructor</div></div>
+            </div>
+            <div class="team-member" style="border:none">
+              <div class="tm-av" style="background:var(--blue)">JW</div>
+              <div><div class="tm-name">Jordan W.</div><div class="tm-role">Co-Instructor</div></div>
+            </div>
+            <button class="btn-ghost" style="width:100%;margin-top:10px;height:30px;font-size:0.7rem;justify-content:center">+ Add co-instructor / TA</button>
+          </div>
+          <div class="bs-section">
+            <div class="bs-head">Publish</div>
+            <button class="btn-ghost" style="width:100%;margin-bottom:8px;height:32px;font-size:0.74rem;justify-content:center">Save Draft</button>
+            <button class="btn-em" style="width:100%;height:34px;font-size:0.75rem;justify-content:center">Publish Course →</button>
+            <div style="font-size:0.62rem;color:var(--fg-3);text-align:center;margin-top:8px">Needs Ologee admin approval before going live</div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /tab-builder -->
+
+    <!-- ══ TAB: STUDENTS ══ -->
+    <div class="tab-panel" id="tab-students">
+      <div class="page-head">
+        <div>
+          <div class="ph-label">Learners</div>
+          <div class="ph-title">Students</div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn-ghost">Export CSV</button>
+          <button class="btn-ghost">Message All</button>
+        </div>
+      </div>
+      <div class="students-body">
+        <div class="filter-bar" style="margin-bottom:16px">
+          <div class="filter-chip active">All courses</div>
+          <div class="filter-chip">Foundations of RP</div>
+          <div class="filter-chip">Trauma-Informed</div>
+        </div>
+        <table class="student-table">
+          <thead class="st-head">
+            <tr>
+              <th>Student</th>
+              <th>Course</th>
+              <th>Progress</th>
+              <th>Enrolled</th>
+              <th>Last active</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="student-row">
+              <td><span class="std-av">JS</span>Janelle Stevens</td>
+              <td style="font-size:0.72rem;color:var(--fg-2)">Foundations of RP</td>
+              <td><div class="prog-mini"><div class="prog-bar-mini"><div class="prog-fill-mini" style="width:52%"></div></div><span class="prog-pct">52%</span></div></td>
+              <td style="font-size:0.72rem;color:var(--fg-3)">Oct 2</td>
+              <td style="font-size:0.72rem;color:var(--fg-3)">2h ago</td>
+              <td><button class="btn-ghost" style="height:26px;font-size:0.66rem">View</button></td>
+            </tr>
+            <tr class="student-row">
+              <td><span class="std-av">MT</span>Marcus T.</td>
+              <td style="font-size:0.72rem;color:var(--fg-2)">Foundations of RP</td>
+              <td><div class="prog-mini"><div class="prog-bar-mini"><div class="prog-fill-mini" style="width:38%"></div></div><span class="prog-pct">38%</span></div></td>
+              <td style="font-size:0.72rem;color:var(--fg-3)">Sep 28</td>
+              <td style="font-size:0.72rem;color:var(--fg-3)">Yesterday</td>
+              <td><button class="btn-em" style="height:26px;padding:0 10px;font-size:0.66rem">Grade ✦</button></td>
+            </tr>
+            <tr class="student-row">
+              <td><span class="std-av">PM</span>Priya M.</td>
+              <td style="font-size:0.72rem;color:var(--fg-2)">Trauma-Informed</td>
+              <td><div class="prog-mini"><div class="prog-bar-mini"><div class="prog-fill-mini" style="width:75%"></div></div><span class="prog-pct">75%</span></div></td>
+              <td style="font-size:0.72rem;color:var(--fg-3)">Sep 15</td>
+              <td style="font-size:0.72rem;color:var(--fg-3)">Today</td>
+              <td><button class="btn-ghost" style="height:26px;font-size:0.66rem">View</button></td>
+            </tr>
+            <tr class="student-row">
+              <td><span class="std-av">RM</span>Rosalyn M.</td>
+              <td style="font-size:0.72rem;color:var(--fg-2)">Foundations of RP</td>
+              <td><div class="prog-mini"><div class="prog-bar-mini"><div class="prog-fill-mini" style="width:88%"></div></div><span class="prog-pct">88%</span></div></td>
+              <td style="font-size:0.72rem;color:var(--fg-3)">Aug 20</td>
+              <td style="font-size:0.72rem;color:var(--fg-3)">3d ago</td>
+              <td><button class="btn-ghost" style="height:26px;font-size:0.66rem">View</button></td>
+            </tr>
+            <tr class="student-row">
+              <td><span class="std-av">TW</span>Terrence W.</td>
+              <td style="font-size:0.72rem;color:var(--fg-2)">Foundations of RP</td>
+              <td><div class="prog-mini"><div class="prog-bar-mini"><div class="prog-fill-mini" style="width:100%"></div></div><span class="prog-pct">100%</span></div></td>
+              <td style="font-size:0.72rem;color:var(--fg-3)">Jul 10</td>
+              <td style="font-size:0.72rem;color:var(--fg-3)">1w ago</td>
+              <td><span class="pill pill-em">Certified</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ TAB: PENDING REVIEW ══ -->
+    <div class="tab-panel" id="tab-pending">
+      <div class="page-head">
+        <div>
+          <div class="ph-label">Action Queue</div>
+          <div class="ph-title">Pending Review</div>
+        </div>
+      </div>
+      <div style="padding:24px 32px">
+        <div class="pending-list">
+          <div class="pending-item">
+            <div class="pi-ico">📋</div>
+            <div class="pi-body">
+              <div class="pi-title">Reflection Journal — Marcus T.</div>
+              <div class="pi-sub">Foundations of Restorative Practice · Chapter 2 Assignment · Submitted 2h ago</div>
+            </div>
+            <div class="pi-action"><button class="btn-em">Grade</button></div>
+          </div>
+          <div class="pending-item">
+            <div class="pi-ico">💬</div>
+            <div class="pi-body">
+              <div class="pi-title">Discussion: Janelle Stevens — "How do you handle a community member who actively resists the restorative circle process?"</div>
+              <div class="pi-sub">Foundations of Restorative Practice · Chapter 3 Discussion · 2h ago</div>
+            </div>
+            <div class="pi-action"><button class="btn-ghost">Reply</button></div>
+          </div>
+          <div class="pending-item">
+            <div class="pi-ico">📋</div>
+            <div class="pi-body">
+              <div class="pi-title">Reflection Journal — Priya M.</div>
+              <div class="pi-sub">Trauma-Informed Facilitation · Chapter 4 Assignment · Submitted yesterday</div>
+            </div>
+            <div class="pi-action"><button class="btn-em">Grade</button></div>
+          </div>
+          <div class="pending-item">
+            <div class="pi-ico">💬</div>
+            <div class="pi-body">
+              <div class="pi-title">Discussion: Terrence W. — "Emotional neutrality vs. emotional presence — what does this look like in practice?"</div>
+              <div class="pi-sub">Foundations of Restorative Practice · Chapter 2 Discussion · Yesterday</div>
+            </div>
+            <div class="pi-action"><button class="btn-ghost">Reply</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TAB: EARNINGS ══ -->
+    <div class="tab-panel" id="tab-earnings">
+      <div class="page-head">
+        <div>
+          <div class="ph-label">Financial</div>
+          <div class="ph-title">Earnings</div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn-ghost">Download Report</button>
+          <button class="btn-ink">Request Payout</button>
+        </div>
+      </div>
+      <div class="earnings-body">
+        <div class="earn-big">
+          <div class="eb-main">
+            <div class="eb-lbl">Total Earnings — All Time</div>
+            <div class="eb-val">$38,210</div>
+            <div class="eb-delta">↑ 12% vs last month · $4,820 in October</div>
+            <div class="eb-note">After Ologee's 5% platform fee · Net to you</div>
+          </div>
+          <div class="payout-btn">
+            <button class="btn-em">Request Payout — $2,340</button>
+            <div style="font-size:0.62rem;color:var(--fg-3);text-align:right">Next automatic release: Nov 1</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <div class="sec-head">
+            <div class="sec-title">Recent Transactions</div>
+          </div>
+          <div class="transaction-list">
+            <div class="tx-head">
+              <span>Course</span>
+              <span>Student</span>
+              <span>Date</span>
+              <span>Amount</span>
+            </div>
+            <div class="tx-row">
+              <span class="tx-course">Foundations of RP</span>
+              <span class="tx-student">Janelle S.</span>
+              <span class="tx-date">Oct 16</span>
+              <span class="tx-amount">+$80.75</span>
+            </div>
+            <div class="tx-row">
+              <span class="tx-course">Foundations of RP</span>
+              <span class="tx-student">Marcus T.</span>
+              <span class="tx-date">Oct 15</span>
+              <span class="tx-amount">+$80.75</span>
+            </div>
+            <div class="tx-row">
+              <span class="tx-course">Trauma-Informed</span>
+              <span class="tx-student">Priya M.</span>
+              <span class="tx-date">Oct 14</span>
+              <span class="tx-amount">+$65.55</span>
+            </div>
+            <div class="tx-row">
+              <span class="tx-course">Foundations of RP</span>
+              <span class="tx-student">D. Okafor</span>
+              <span class="tx-date">Oct 13</span>
+              <span class="tx-amount">+$80.75</span>
+            </div>
+            <div class="tx-row">
+              <span class="tx-course">Trauma-Informed</span>
+              <span class="tx-student">R. Washington</span>
+              <span class="tx-date">Oct 12</span>
+              <span class="tx-amount">+$65.55</span>
+            </div>
+            <div class="tx-row">
+              <span class="tx-course">Foundations of RP</span>
+              <span class="tx-student">T. Williams</span>
+              <span class="tx-date">Oct 11</span>
+              <span class="tx-amount">+$80.75</span>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:0.65rem;color:var(--fg-3)">All amounts shown after Ologee's 5% platform fee. Stripe Connect disburses funds on the 1st of each month or on request.</div>
+      </div>
+    </div>
+
+    <!-- ══ TAB: DOCUMENTS ══ -->
+    <div class="tab-panel" id="tab-documents">
+      <div class="page-head">
+        <div><div class="ph-label">Instructor</div><div class="ph-title">Documents</div></div>
+        <div class="ph-actions">
+          <select class="be-select" style="font-size:0.74rem;">
+            <option>All Courses</option>
+            <option>Foundations of Restorative Practice</option>
+            <option>Circle Facilitation Practicum</option>
+            <option>Trauma-Informed Circle Work</option>
+          </select>
+          <button class="btn-ghost">Filter by type</button>
+          <button class="btn-em">+ Upload</button>
+        </div>
+      </div>
+      <div style="padding:28px 32px;">
+        <!-- Filter chips -->
+        <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+          <button style="padding:4px 12px;border-radius:99px;border:1px solid var(--emerald);background:var(--em-light);color:var(--emerald);font-size:0.68rem;font-weight:600;cursor:pointer;">All</button>
+          <button style="padding:4px 12px;border-radius:99px;border:1px solid var(--line);background:none;color:var(--fg-2);font-size:0.68rem;cursor:pointer;">PDF</button>
+          <button style="padding:4px 12px;border-radius:99px;border:1px solid var(--line);background:none;color:var(--fg-2);font-size:0.68rem;cursor:pointer;">Word</button>
+          <button style="padding:4px 12px;border-radius:99px;border:1px solid var(--line);background:none;color:var(--fg-2);font-size:0.68rem;cursor:pointer;">Spreadsheet</button>
+          <button style="padding:4px 12px;border-radius:99px;border:1px solid var(--line);background:none;color:var(--fg-2);font-size:0.68rem;cursor:pointer;">Image</button>
+          <button style="padding:4px 12px;border-radius:99px;border:1px solid var(--line);background:none;color:var(--fg-2);font-size:0.68rem;cursor:pointer;">Other</button>
+        </div>
+
+        <!-- File table -->
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;">
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 80px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--surface-2);">
+            <span style="font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg-3);">Name</span>
+            <span style="font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg-3);">Course</span>
+            <span style="font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg-3);">Uploaded</span>
+            <span style="font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg-3);">Size</span>
+          </div>
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 80px;padding:12px 16px;border-bottom:1px solid var(--line);align-items:center;">
+            <div style="display:flex;align-items:center;gap:10px;"><div style="width:28px;height:28px;border-radius:5px;background:var(--red-lt);display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;">📄</div><div><div style="font-size:0.78rem;font-weight:500;color:var(--fg);">Circle Facilitation Checklist.pdf</div><div style="font-size:0.62rem;color:var(--fg-3);">Lesson: Running a Restorative Circle</div></div></div>
+            <span style="font-size:0.72rem;color:var(--fg-2);">Foundations</span>
+            <span style="font-size:0.72rem;color:var(--fg-2);">Oct 9, 2026</span>
+            <span style="font-size:0.72rem;color:var(--fg-2);">240 KB</span>
+          </div>
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 80px;padding:12px 16px;border-bottom:1px solid var(--line);align-items:center;">
+            <div style="display:flex;align-items:center;gap:10px;"><div style="width:28px;height:28px;border-radius:5px;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;">📋</div><div><div style="font-size:0.78rem;font-weight:500;color:var(--fg);">Opening Questions — Talking Piece Script.docx</div><div style="font-size:0.62rem;color:var(--fg-3);">Lesson: Running a Restorative Circle</div></div></div>
+            <span style="font-size:0.72rem;color:var(--fg-2);">Foundations</span>
+            <span style="font-size:0.72rem;color:var(--fg-2);">Oct 9, 2026</span>
+            <span style="font-size:0.72rem;color:var(--fg-2);">58 KB</span>
+          </div>
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 80px;padding:12px 16px;border-bottom:1px solid var(--line);align-items:center;">
+            <div style="display:flex;align-items:center;gap:10px;"><div style="width:28px;height:28px;border-radius:5px;background:var(--em-light);display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;">📄</div><div><div style="font-size:0.78rem;font-weight:500;color:var(--fg);">Restorative Practice Syllabus — Fall 2026.pdf</div><div style="font-size:0.62rem;color:var(--fg-3);">Course overview</div></div></div>
+            <span style="font-size:0.72rem;color:var(--fg-2);">Foundations</span>
+            <span style="font-size:0.72rem;color:var(--fg-2);">Sep 28, 2026</span>
+            <span style="font-size:0.72rem;color:var(--fg-2);">1.1 MB</span>
+          </div>
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 80px;padding:12px 16px;border-bottom:1px solid var(--line);align-items:center;">
+            <div style="display:flex;align-items:center;gap:10px;"><div style="width:28px;height:28px;border-radius:5px;background:var(--gold-lt);display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;">📊</div><div><div style="font-size:0.78rem;font-weight:500;color:var(--fg);">Student Progress Tracker Template.xlsx</div><div style="font-size:0.62rem;color:var(--fg-3);">General resource</div></div></div>
+            <span style="font-size:0.72rem;color:var(--fg-2);">All courses</span>
+            <span style="font-size:0.72rem;color:var(--fg-2);">Sep 15, 2026</span>
+            <span style="font-size:0.72rem;color:var(--fg-2);">84 KB</span>
+          </div>
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 80px;padding:12px 16px;border-bottom:1px solid var(--line);align-items:center;">
+            <div style="display:flex;align-items:center;gap:10px;"><div style="width:28px;height:28px;border-radius:5px;background:var(--red-lt);display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;">📄</div><div><div style="font-size:0.78rem;font-weight:500;color:var(--fg);">Virtual Circle Setup Guide.pdf</div><div style="font-size:0.62rem;color:var(--fg-3);">Lesson: Facilitation in Virtual Spaces</div></div></div>
+            <span style="font-size:0.72rem;color:var(--fg-2);">Practicum</span>
+            <span style="font-size:0.72rem;color:var(--fg-2);">Oct 1, 2026</span>
+            <span style="font-size:0.72rem;color:var(--fg-2);">310 KB</span>
+          </div>
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 80px;padding:12px 16px;align-items:center;">
+            <div style="display:flex;align-items:center;gap:10px;"><div style="width:28px;height:28px;border-radius:5px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;">🖼</div><div><div style="font-size:0.78rem;font-weight:500;color:var(--fg);">Circle Seating Diagram.png</div><div style="font-size:0.62rem;color:var(--fg-3);">Lesson: Setting the Physical Space</div></div></div>
+            <span style="font-size:0.72rem;color:var(--fg-2);">Practicum</span>
+            <span style="font-size:0.72rem;color:var(--fg-2);">Oct 1, 2026</span>
+            <span style="font-size:0.72rem;color:var(--fg-2);">520 KB</span>
+          </div>
+        </div>
+
+        <!-- Drop zone -->
+        <div style="margin-top:14px;border:1.5px dashed var(--line);border-radius:var(--r-sm);padding:24px;text-align:center;cursor:pointer;" onmouseenter="this.style.borderColor='var(--emerald)'" onmouseleave="this.style.borderColor='var(--line)'">
+          <div style="font-size:0.82rem;font-weight:600;color:var(--fg-2);">+ Drop files here or click to upload</div>
+          <div style="font-size:0.65rem;color:var(--fg-3);margin-top:5px;">PDF, DOCX, XLSX, PNG, ZIP · up to 100 MB each</div>
+        </div>
+      </div>
+    </div><!-- /tab-documents -->
+
+    <!-- ══ TAB: DISCUSSION ══ -->
+    <div class="tab-panel" id="tab-discussion">
+      <div class="page-head">
+        <div><div class="ph-label">Instructor</div><div class="ph-title">Discussion</div></div>
+        <div class="ph-actions"><button class="btn-ghost">Filter by course</button></div>
+      </div>
+      <div style="padding:28px 32px;display:flex;flex-direction:column;gap:16px;">
+        <div style="font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-3);">Unanswered · 3</div>
+        <div style="background:var(--surface);border:1px solid var(--em-light);border-left:3px solid var(--emerald);border-radius:var(--r-sm);padding:16px 20px;">
+          <div style="font-size:0.65rem;color:var(--fg-3);margin-bottom:6px;">Foundations of Restorative Practice · Chapter 3 · 2h ago</div>
+          <div style="font-size:0.82rem;font-weight:600;color:var(--fg);margin-bottom:4px;">Janelle Stevens</div>
+          <div style="font-size:0.78rem;color:var(--fg-2);line-height:1.5;">"How do you handle a community member who actively resists the restorative circle process?"</div>
+          <button class="btn-em" style="margin-top:12px;height:30px;font-size:0.7rem;">Reply</button>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--em-light);border-left:3px solid var(--emerald);border-radius:var(--r-sm);padding:16px 20px;">
+          <div style="font-size:0.65rem;color:var(--fg-3);margin-bottom:6px;">Foundations of Restorative Practice · Chapter 2 · Yesterday</div>
+          <div style="font-size:0.82rem;font-weight:600;color:var(--fg);margin-bottom:4px;">Terrence W.</div>
+          <div style="font-size:0.78rem;color:var(--fg-2);line-height:1.5;">"Emotional neutrality vs. emotional presence — what does this look like in practice?"</div>
+          <button class="btn-em" style="margin-top:12px;height:30px;font-size:0.7rem;">Reply</button>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--em-light);border-left:3px solid var(--emerald);border-radius:var(--r-sm);padding:16px 20px;">
+          <div style="font-size:0.65rem;color:var(--fg-3);margin-bottom:6px;">Circle Facilitation Practicum · Chapter 1 · 2 days ago</div>
+          <div style="font-size:0.82rem;font-weight:600;color:var(--fg);margin-bottom:4px;">Amara D.</div>
+          <div style="font-size:0.78rem;color:var(--fg-2);line-height:1.5;">"Is there a recommended way to set up the physical space when facilitating a circle virtually?"</div>
+          <button class="btn-em" style="margin-top:12px;height:30px;font-size:0.7rem;">Reply</button>
+        </div>
+        <div style="font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-3);margin-top:8px;">Answered · 5</div>
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:16px 20px;opacity:0.75;">
+          <div style="font-size:0.65rem;color:var(--fg-3);margin-bottom:6px;">Foundations of Restorative Practice · Chapter 1 · 3 days ago</div>
+          <div style="font-size:0.82rem;font-weight:600;color:var(--fg);margin-bottom:4px;">Marcus T.</div>
+          <div style="font-size:0.78rem;color:var(--fg-2);line-height:1.5;">"Can restorative practice be used outside of school settings, such as in corporate environments?"</div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:0.72rem;color:var(--fg-3);display:flex;align-items:center;gap:6px;"><span style="color:var(--emerald);">✓</span> Answered by you · 2 days ago</div>
+        </div>
+      </div>
+    </div><!-- /tab-discussion -->
+
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+const NAV_MAP = {
+  home: 'nav-home', courses: 'nav-courses', builder: 'nav-builder',
+  students: 'nav-students', pending: 'nav-pending', earnings: 'nav-earnings',
+  discussion: 'nav-discussion', documents: 'nav-documents'
+};
+
+function toggleNotif() {
+  const d = document.getElementById('notif-dropdown');
+  d.hidden = !d.hidden;
+}
+document.addEventListener('click', e => {
+  const d = document.getElementById('notif-dropdown');
+  if (d && !d.hidden && !d.contains(e.target) && !document.getElementById('notif-btn').contains(e.target)) d.hidden = true;
+});
+
+function switchETab(id) {
+  ['content','attachments'].forEach(t => {
+    document.getElementById('epanel-' + t).hidden = (t !== id);
+    const btn = document.getElementById('etab-' + t);
+    btn.style.borderBottomColor = t === id ? 'var(--emerald)' : 'transparent';
+    btn.style.color = t === id ? 'var(--fg)' : 'var(--fg-2)';
+    btn.style.fontWeight = t === id ? '600' : '500';
+  });
+}
+
+function toggleSettings() {
+  const panel = document.getElementById('builder-settings-panel');
+  const btn = document.getElementById('settings-toggle');
+  const collapsed = panel.classList.toggle('collapsed');
+  btn.style.color = collapsed ? '' : 'var(--emerald)';
+  btn.style.borderColor = collapsed ? '' : 'var(--emerald)';
+}
+
+function go(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const panel = document.getElementById('tab-' + id);
+  if (panel) panel.classList.add('active');
+  const nav = document.getElementById(NAV_MAP[id]);
+  if (nav) nav.classList.add('active');
+}
+
+function toggleBoChapter(head) {
+  head.closest('.bo-chapter').classList.toggle('open');
+}
+
+function setLesson(name, type, breadcrumb, el) {
+  document.querySelectorAll('.bo-lesson').forEach(l => l.classList.remove('active'));
+  el.classList.add('active');
+  const t = document.getElementById('be-title');
+  if (t) t.value = name;
+  const b = document.getElementById('be-breadcrumb');
+  if (b) b.innerHTML = breadcrumb + ' · <strong>' + name + '</strong>';
+  const dot = document.getElementById('be-dot');
+  const st  = document.getElementById('be-status-text');
+  if (dot) dot.classList.remove('saved');
+  if (st) st.textContent = 'Unsaved changes';
+}
+
+function saveDraft() {
+  const dot = document.getElementById('be-dot');
+  const st  = document.getElementById('be-status-text');
+  if (dot) dot.classList.add('saved');
+  if (st) st.textContent = 'Saved';
+}
+</script>
+
+</body></html>
